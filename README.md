@@ -1,5 +1,8 @@
 LotoPrediction
 
+this is an autmatisation an acquiistion script for run junpyter notebook from this article:
+https://ledatascientist.com/le-deep-learning-et-le-hasard-prediction-du-loto/
+
 1) You need instance of mongodb in localhost 
 sudo docker run -p 27017:27017 mongo
 
