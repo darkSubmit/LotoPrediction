@@ -1,6 +1,6 @@
 LotoPrediction
 
-this is an autmatisation an acquiistion script for run junpyter notebook from this article:
+this is an automatisation an acquisition script for run junpyter notebook from this article:
 https://ledatascientist.com/le-deep-learning-et-le-hasard-prediction-du-loto/
 
 1) You need instance of mongodb in localhost 
