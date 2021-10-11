@@ -18,7 +18,7 @@
 #
 # warning:this script was realized by an totaly neewbie python user.
 #
-# This is THE BALKANIE PROJECT
+# This is THE BALKANY PROJECT
 # Good Luck !
 
 from pymongo import MongoClient
@@ -33,7 +33,7 @@ NB_LEARNING_CYCLE=70
 # definition: Predict loto result just that.
 #############################################################################
 def predictLoto(): 
-    launchAcquisitionSequence()
+    #launchAcquisitionSequence()
     predictions = getIaPredictionResult()
     processPredictions(predictions)
 
@@ -101,6 +101,7 @@ def getNbChanceFromPrediction(cursor):
 #############################################################################
 def processPredictions(predictions):
     nbOccurenceByNumber = getNbOccurenceByNumber(predictions)
+    nbOccurenceChance = getNbOccurenceChance(predictions)
 
     NAME_FILE_OCCURENCE = "prediction-occurence.txt"
     os.system('touch '+ NAME_FILE_OCCURENCE)
@@ -110,12 +111,31 @@ def processPredictions(predictions):
 
     nbOccurenceByNumber.sort(key=lambda x: x.number)
     for occurence in nbOccurenceByNumber:
-        writeOccurenceInFile(NAME_FILE_OCCURENCE,occurence)
+        writeOccurenceInFile(NAME_FILE_OCCURENCE,occurence, False)
+
+    nbOccurenceChance.sort(key=lambda x: x.number)
+    for occurence in nbOccurenceChance:
+        writeOccurenceInFile(NAME_FILE_OCCURENCE,occurence, True)
 
     for i in [0,1,2,3,4]:
          writeOccurenceByPositionInFile(NAME_FILE_OCCURENCE, getNbOccurenceByNumberByPosition(predictions,i), i)
 
     return nbOccurenceByNumber
+
+#############################################################################
+# definition: getNbOccurenceForChanceNumber
+# Get number occurence by number in positions 
+#############################################################################
+def getNbOccurenceChance(predictions):
+    nbOccurenceByNumberChance = []
+
+    for prediction in predictions:
+        number = prediction.nbChance
+        if (not existInOccurenceList(number,nbOccurenceByNumberChance)):
+            nbOccurenceByNumberChance.append(Occurence(number))
+
+    return nbOccurenceByNumberChance
+
 
 #############################################################################
 # definition: getNbOccurenceByNumberByPosition
@@ -175,9 +195,12 @@ def writePredictionInFile(prediction):
             + "\n")
     f.close()
 
-def writeOccurenceInFile(NAME_FILE_OCCURENCE, occurence):
+def writeOccurenceInFile(NAME_FILE_OCCURENCE, occurence, isChance):
     f = open(NAME_FILE_OCCURENCE, "a")
-    f.write("number " + str(occurence.number)
+    ret = ""
+    if isChance:
+        ret = " CHANCE "
+    f.write("\n number " + ret +str(occurence.number)
             +" occurence " + str(occurence.totalOccurence)
             + "\n")
     f.close()
