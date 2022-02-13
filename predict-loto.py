@@ -27,7 +27,10 @@ from Occurence import Occurence
 import os
 
 #Nb de cycle d'aprentisage / prediction
-NB_LEARNING_CYCLE=70
+NB_LEARNING_CYCLE=40
+
+NAME_FILE_PREDICTION = "prediction-tirage.txt"
+NAME_FILE_OCCURENCE = "prediction-occurence.txt"
 
 #############################################################################
 # definition: Predict loto result just that.
@@ -102,25 +105,70 @@ def getNbChanceFromPrediction(cursor):
 def processPredictions(predictions):
     nbOccurenceByNumber = getNbOccurenceByNumber(predictions)
     nbOccurenceChance = getNbOccurenceChance(predictions)
+    occurenceByposition = []
 
-    NAME_FILE_OCCURENCE = "prediction-occurence.txt"
     os.system('touch '+ NAME_FILE_OCCURENCE)
+    os.system('touch '+ NAME_FILE_PREDICTION)
 
+    file = open(NAME_FILE_PREDICTION, "a")
     for prediction in predictions:
-        writePredictionInFile(prediction)
+        writePredictionInFile(prediction,file)
+    file.close()
 
     nbOccurenceByNumber.sort(key=lambda x: x.number)
     for occurence in nbOccurenceByNumber:
-        writeOccurenceInFile(NAME_FILE_OCCURENCE,occurence, False)
+        writeOccurenceInFile(occurence, False)
 
     nbOccurenceChance.sort(key=lambda x: x.number)
     for occurence in nbOccurenceChance:
-        writeOccurenceInFile(NAME_FILE_OCCURENCE,occurence, True)
+        writeOccurenceInFile(occurence, True)
 
     for i in [0,1,2,3,4]:
-         writeOccurenceByPositionInFile(NAME_FILE_OCCURENCE, getNbOccurenceByNumberByPosition(predictions,i), i)
+        occurenceByposition.append(getNbOccurenceByNumberByPosition(predictions,i))
+        writeOccurenceByPositionInFile(occurenceByposition[i], i)
 
-    return nbOccurenceByNumber
+    processFilterByMaxNumber(nbOccurenceByNumber, predictions)
+
+#############################################################################
+# definition: processFilterByMaxNumber
+# try process but filter the result by max number 
+#############################################################################
+def processFilterByMaxNumber (nbOccurenceByNumber, predictions):
+
+    nbOccurenceByNumber.sort(key=lambda x: x.totalOccurence, reverse=True)
+
+    firstOccur = nbOccurenceByNumber[0]
+    secondOccur = nbOccurenceByNumber[1]
+
+    predictionByFirstOccur = getPredictionFilterByNumber(firstOccur.number,predictions)
+    predictionBySecondOccur = getPredictionFilterByNumber(secondOccur.number,predictions)
+
+    file = open(NAME_FILE_PREDICTION, "a")
+    file.write("\n \n ################### position filtered : " + str(firstOccur.number) + " ########## \n")
+    for prediction in predictionByFirstOccur:
+        writePredictionInFile(prediction,file)
+    file.close()
+
+    file = open(NAME_FILE_PREDICTION, "a")
+    file.write("\n \n ################### position filtered : " + str(secondOccur.number) + " ########## \n")
+    for prediction in predictionBySecondOccur:
+        writePredictionInFile(prediction,file)
+    file.close()
+
+#############################################################################
+# definition: predictionFilterContainNumber
+# prediction lit but filter by number
+#############################################################################
+def getPredictionFilterByNumber (number, predictions):
+
+    predictionFiltered = []
+
+    for prediction in predictions:
+        if(prediction.tirage.count(number) > 0):
+            predictionFiltered.append(prediction)
+
+    return predictionFiltered
+
 
 #############################################################################
 # definition: getNbOccurenceForChanceNumber
@@ -180,41 +228,35 @@ def existInOccurenceList(number, nbOccurenceByNumber):
     return isExist
 
 ################# TEMPS QUE PAS D'IHM #########################################
-def writePredictionInFile(prediction):
-
-    NAME_FILE_PREDICTION = "prediction-tirage.txt"
-    os.system('touch '+ NAME_FILE_PREDICTION)
-
-    f = open(NAME_FILE_PREDICTION, "a")
-    f.write(str(prediction.tirage[0])+ " " 
+def writePredictionInFile(prediction,file):
+    file.write(str(prediction.tirage[0])+ " " 
             + str(prediction.tirage[1])+ " "
             + str(prediction.tirage[2])+ " "
             + str(prediction.tirage[3])+ " "
             + str(prediction.tirage[4])+ "  "
             + str(prediction.nbChance)
             + "\n")
-    f.close()
 
-def writeOccurenceInFile(NAME_FILE_OCCURENCE, occurence, isChance):
-    f = open(NAME_FILE_OCCURENCE, "a")
+def writeOccurenceInFile(occurence, isChance):
+    file = open(NAME_FILE_OCCURENCE, "a")
     ret = ""
     if isChance:
         ret = " CHANCE "
-    f.write("\n number " + ret +str(occurence.number)
+    file.write("\n number " + ret +str(occurence.number)
             +" occurence " + str(occurence.totalOccurence)
             + "\n")
-    f.close()
+    file.close()
 
-def writeOccurenceByPositionInFile(NAME_FILE_OCCURENCE, ocurences , position):
+def writeOccurenceByPositionInFile(ocurences , position):
 
-    f = open(NAME_FILE_OCCURENCE, "a")
-    f.write("\n \n ################### position : " + str(position) + " ########## \n")
+    file = open(NAME_FILE_OCCURENCE, "a")
+    file.write("\n \n ################### position : " + str(position) + " ########## \n")
     ocurences.sort(key=lambda x: x.number)
     for ocurence in ocurences:
-        f.write("number " + str(ocurence.number)
+        file.write("number " + str(ocurence.number)
                 +" occurence " + str(ocurence.totalOccurence)
                 + "\n")
-    f.close()
+    file.close()
 
 ## Launch Script ##
 predictLoto()
